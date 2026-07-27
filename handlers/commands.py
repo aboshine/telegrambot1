@@ -1,18 +1,10 @@
-"""Basic command handlers (/start, /help)."""
+"""Basic command handlers (/help)."""
 
 from aiogram import Router
-from aiogram.filters import Command, CommandStart
+from aiogram.filters import Command
 from aiogram.types import Message
 
 router = Router(name="commands")
-
-
-@router.message(CommandStart())
-async def cmd_start(message: Message) -> None:
-    await message.answer(
-        "Hello! This bot is running on aiogram 3.\n"
-        "Use /help to see available commands."
-    )
 
 
 @router.message(Command("help"))

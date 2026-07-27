@@ -9,6 +9,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 from config import get_settings
+from database import DB_PATH, init_db
 from handlers import router as root_router
 
 
@@ -31,6 +32,12 @@ async def main() -> None:
     )
     dp = Dispatcher()
     dp.include_router(root_router)
+
+    async def on_startup() -> None:
+        await init_db()
+        logging.getLogger(__name__).info("Database initialized at %s", DB_PATH)
+
+    dp.startup.register(on_startup)
 
     logging.getLogger(__name__).info("Starting bot (long polling)")
     try:

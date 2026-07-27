@@ -3,6 +3,9 @@
 .env.local
 *.pem
 
+# Local database
+data/*.db
+
 # Python
 __pycache__/
 *.py[cod]
