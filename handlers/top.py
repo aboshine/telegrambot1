@@ -5,6 +5,7 @@ from aiogram.filters import Command
 from aiogram.types import Message
 
 from database import TopUser, get_top_users
+from achievements import get_achievement
 
 router = Router(name="top")
 
@@ -23,12 +24,13 @@ def _format_user_line(place: int, user: TopUser) -> str:
         identity = name
 
     streak = user["streak_count"]
+    badge = get_achievement(streak).label()
     if place in _MEDALS:
         prefix = f"{place}. {_MEDALS[place]}"
     else:
         prefix = f"{place}."
 
-    return f"{prefix} {identity} — 🔥 {streak} дней"
+    return f"{prefix} {identity} {badge} — 🔥 {streak} дней"
 
 
 def _format_leaderboard(users: list[TopUser]) -> str:

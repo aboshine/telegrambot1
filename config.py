@@ -15,6 +15,16 @@ class Settings(BaseSettings):
 
     bot_token: SecretStr = Field(..., description="Telegram Bot API token from @BotFather")
     log_level: str = Field(default="INFO", description="Python logging level (DEBUG, INFO, WARNING, ERROR)")
+    reminder_chat_id: int | None = Field(
+        default=None,
+        description="Telegram chat id for daily reminders (group or channel)",
+    )
+    reminder_timezone: str = Field(
+        default="Europe/Moscow",
+        description="IANA timezone for scheduled reminders",
+    )
+    reminder_hour: int = Field(default=20, ge=0, le=23)
+    reminder_minute: int = Field(default=0, ge=0, le=59)
 
 
 def get_settings() -> Settings:

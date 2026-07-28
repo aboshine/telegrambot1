@@ -11,6 +11,7 @@ from aiogram.enums import ParseMode
 from config import get_settings
 from database import DB_PATH, init_db
 from handlers import router as root_router
+from reminders import setup_reminders, shutdown_scheduler
 
 
 def setup_logging(level_name: str) -> None:
@@ -33,11 +34,16 @@ async def main() -> None:
     dp = Dispatcher()
     dp.include_router(root_router)
 
-    async def on_startup() -> None:
+    async def on_startup(bot: Bot) -> None:
         await init_db()
         logging.getLogger(__name__).info("Database initialized at %s", DB_PATH)
+        await setup_reminders(bot, settings)
+
+    async def on_shutdown() -> None:
+        shutdown_scheduler()
 
     dp.startup.register(on_startup)
+    dp.shutdown.register(on_shutdown)
 
     logging.getLogger(__name__).info("Starting bot (long polling)")
     try:

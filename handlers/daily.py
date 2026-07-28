@@ -4,6 +4,7 @@ from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.types import Message
 
+from achievements import is_achievement_milestone, milestone_congrats_message
 from database import add_or_update_user, process_daily_report
 
 router = Router(name="daily")
@@ -27,9 +28,12 @@ async def daily_report(message: Message) -> None:
     status, streak = await process_daily_report(user.id)
 
     if status == "success":
-        await message.answer(
+        text = (
             f"🔥 Отличная работа! Твой стрик увеличился до {streak} дней подряд!"
         )
+        if is_achievement_milestone(streak):
+            text += f"\n\n{milestone_congrats_message(streak)}"
+        await message.answer(text)
     elif status == "already_done":
         await message.answer(
             "Ты уже засчитал отчёт за сегодня! Возвращайся завтра."

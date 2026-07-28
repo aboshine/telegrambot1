@@ -59,6 +59,15 @@ CREATE TABLE IF NOT EXISTS challenge_participants (
 );
 """
 
+_CREATE_BOT_SETTINGS_TABLE = """
+CREATE TABLE IF NOT EXISTS bot_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+"""
+
+REMINDER_CHAT_ID_KEY = "reminder_chat_id"
+
 
 async def init_db() -> None:
     """Create the database file and tables if they do not exist."""
@@ -67,6 +76,7 @@ async def init_db() -> None:
         await db.execute(_CREATE_USERS_TABLE)
         await db.execute(_CREATE_CHALLENGES_TABLE)
         await db.execute(_CREATE_CHALLENGE_PARTICIPANTS_TABLE)
+        await db.execute(_CREATE_BOT_SETTINGS_TABLE)
         await db.commit()
 
 
@@ -259,3 +269,39 @@ async def join_challenge(challenge_id: int, user_id: int) -> bool:
             return True
         except aiosqlite.IntegrityError:
             return False
+
+
+async def get_stored_reminder_chat_id() -> int | None:
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute(
+            "SELECT value FROM bot_settings WHERE key = ?",
+            (REMINDER_CHAT_ID_KEY,),
+        ) as cursor:
+            row = await cursor.fetchone()
+    if row is None:
+        return None
+    try:
+        return int(row[0])
+    except (TypeError, ValueError):
+        return None
+
+
+async def set_reminder_chat_id_if_unset(chat_id: int) -> bool:
+    """Persist reminder chat id when none is stored yet. Returns True if saved."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute(
+            "SELECT value FROM bot_settings WHERE key = ?",
+            (REMINDER_CHAT_ID_KEY,),
+        ) as cursor:
+            existing = await cursor.fetchone()
+        if existing is not None:
+            return False
+        await db.execute(
+            """
+            INSERT INTO bot_settings (key, value)
+            VALUES (?, ?)
+            """,
+            (REMINDER_CHAT_ID_KEY, str(chat_id)),
+        )
+        await db.commit()
+        return True
