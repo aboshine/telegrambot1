@@ -11,6 +11,7 @@ from aiogram.enums import ParseMode
 from config import get_settings
 from database import DB_PATH, init_db
 from handlers import router as root_router
+from health_server import start_health_server
 from reminders import setup_reminders, shutdown_scheduler
 
 
@@ -46,9 +47,11 @@ async def main() -> None:
     dp.shutdown.register(on_shutdown)
 
     logging.getLogger(__name__).info("Starting bot (long polling)")
+    health_runner = await start_health_server()
     try:
         await dp.start_polling(bot)
     finally:
+        await health_runner.cleanup()
         await bot.session.close()
 
 
