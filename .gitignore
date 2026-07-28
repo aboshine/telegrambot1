@@ -4,7 +4,8 @@
 *.pem
 
 # Local database
-data/*.db
+data/
+*.db
 
 # Python
 __pycache__/

@@ -70,7 +70,7 @@ async def setup_reminders(bot: Bot, settings: Settings) -> None:
     chat_id = await resolve_reminder_chat_id(settings)
     if chat_id is None:
         logger.warning(
-            "Daily reminders disabled: set REMINDER_CHAT_ID in .env or run /start in a group"
+            "Daily reminders disabled: set CHAT_ID in .env or run /start in a group"
         )
         return
     schedule_daily_reminder(bot, chat_id, settings)
