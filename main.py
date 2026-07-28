@@ -1,6 +1,7 @@
 """Entry point: configure logging, build the bot, run long polling."""
 
 import asyncio
+import contextlib
 import logging
 import sys
 
@@ -11,7 +12,7 @@ from aiogram.enums import ParseMode
 from config import get_settings
 from database import DB_PATH, init_db
 from handlers import router as root_router
-from health_server import start_health_server
+from health_server import run_health_server
 from reminders import setup_reminders, shutdown_scheduler
 
 
@@ -25,6 +26,10 @@ def setup_logging(level_name: str) -> None:
 
 
 async def main() -> None:
+    setup_logging("INFO")
+    health_task = asyncio.create_task(run_health_server(), name="health-server")
+    await asyncio.sleep(0)
+
     settings = get_settings()
     setup_logging(settings.log_level)
 
@@ -47,11 +52,12 @@ async def main() -> None:
     dp.shutdown.register(on_shutdown)
 
     logging.getLogger(__name__).info("Starting bot (long polling)")
-    health_runner = await start_health_server()
     try:
         await dp.start_polling(bot)
     finally:
-        await health_runner.cleanup()
+        health_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await health_task
         await bot.session.close()
 
 
